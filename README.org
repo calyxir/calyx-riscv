@@ -1,0 +1,46 @@
+* Experimenting with writing a simple processor in Calyx
+
+* Some useful commands
+
+Encode =simple.s= into Calyx data format.
+
+#+begin_src async-shell :name encode :results none :dir ~/Research/calyx-processor/riscv-to-calyx
+cargo run -- encode data/simple.s \
+      --data ram:16:32:1 \
+      --data reg_file:32:32 \
+      --data dbg:1:32 \
+      -o ../data/simple.json
+#+end_src
+
+Decode a calyx data file and read assembly instructions.
+
+#+begin_src async-shell :name decode :results none :dir ~/Research/calyx-processor/riscv-to-calyx
+cargo run -- decode ../data/simple.json
+#+end_src
+
+Simulate the design with icarus verilog (was having some issues with Verilator)
+
+#+begin_src async-shell :name calyx-processor :results none
+cargo run --manifest-path=riscv-to-calyx/Cargo.toml -- \
+      encode riscv-to-calyx/data/simple.s \
+      --data ram:16:32:1 \
+      --data reg_file:32:32 \
+      --data dbg:1:32 \
+      -o data/simple.json
+
+fud e -q src/main.futil \
+    -s verilog.data data/simple.json \
+    --to dat --through icarus-verilog \
+    -s verilog.cycle_limit 100000 | cargo run --manifest-path=riscv-to-calyx/Cargo.toml -- decode
+#+end_src
+
+Debug the design with a lovely vcd file
+
+#+begin_src async-shell :name gen-vcd :results none
+fud e src/main.futil \
+    -s verilog.data data/simple.json \
+    --to vcd --through icarus-verilog \
+    -s calyx.flags " -p no-opt" \
+    -s verilog.cycle_limit 1000 \
+    -o dbg.vcd
+#+end_src

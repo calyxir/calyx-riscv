@@ -1,0 +1,16 @@
+[package]
+name = "riscv-to-calyx"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.83"
+argh = "0.1.12"
+bitvec = "1.0.1"
+elf = "0.7.4"
+itertools = "0.13.0"
+serde = "1.0.201"
+serde_json = "1.0.117"
+tempfile = "3.10.1"
