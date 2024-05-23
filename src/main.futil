@@ -296,8 +296,7 @@ component main(@go go: 1) -> (@done done: 1) {
     curr_rs1 = std_reg(32);
     curr_rs2 = std_reg(32);
     curr_imm_cat = std_cat(7, 5, 13);
-    // TODO: padding isn't correct for immediates, we need to sign extend
-    curr_imm = std_pad(13, 32);
+    curr_imm = std_sign_extend(13, 32);
     btype_immediate = btype_immediate();
     jtype_immediate = jtype_immediate();
     j_retval_incr = std_add(32);
