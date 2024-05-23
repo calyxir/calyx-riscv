@@ -2,6 +2,13 @@
 
 This is a bad implementation of a subset of the RISCV32-I instruction set.
 
+** Reasons this is bad (and thus areas to improve)
+
+- This implementation is not pipelined, meaning that each instruction takes ~18 cycles to execute
+- I haven't used =static= anywhere. I think that most things can probably be made =static=
+- I haven't made any particular effort to simplify decoding logic
+- probably more things
+
 * Some useful commands
 
 Encode =simple.s= into Calyx data format.
