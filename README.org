@@ -1,5 +1,7 @@
 * Experimenting with writing a simple processor in Calyx
 
+This is a bad implementation of a subset of the RISCV32-I instruction set.
+
 * Some useful commands
 
 Encode =simple.s= into Calyx data format.
