@@ -1,5 +1,6 @@
 import "primitives/core.futil";
 import "primitives/memories/comb.futil";
+import "primitives/binary_operators.futil";
 
 component register_file(@go go: 1, reg_idx: 5, write_val: 32, write_en: 1) -> (@done done: 1, reg_val: 32) {
   cells {
@@ -205,10 +206,10 @@ comb component jtype_immediate(imm: 20) -> (out: 32) {
     cat3 = std_cat(1, 20, 21);
 
     // extend imm to 32 bits
-    sign_extend = std_sign_extend(21, 32);
+    sign_extend = std_signext(21, 32);
 
     // divide by 4 (val >> 2)
-    right_shift = std_signed_rsh(32);
+    right_shift = std_srsh(32);
   }
 
   wires {
@@ -296,7 +297,7 @@ component main(@go go: 1) -> (@done done: 1) {
     curr_rs1 = std_reg(32);
     curr_rs2 = std_reg(32);
     curr_imm_cat = std_cat(7, 5, 13);
-    curr_imm = std_sign_extend(13, 32);
+    curr_imm = std_signext(13, 32);
     btype_immediate = btype_immediate();
     jtype_immediate = jtype_immediate();
     j_retval_incr = std_add(32);
