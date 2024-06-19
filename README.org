@@ -37,19 +37,41 @@ cargo run --manifest-path=riscv-to-calyx/Cargo.toml -- \
       --data dbg:1:32 \
       -o data/simple.json
 
-fud e -q src/main.futil \
-    -s verilog.data data/simple.json \
-    --to dat --through icarus-verilog \
-    -s verilog.cycle_limit 100000 | cargo run --manifest-path=riscv-to-calyx/Cargo.toml -- decode
+rm -rf .fud2
+fud2 src/main.futil \
+    --set sim.data=data/simple.json \
+    --to dat --through icarus \
+    --set sim.cycle_limit=100000 --keep
+
+# | cargo run --manifest-path=riscv-to-calyx/Cargo.toml -- decode
 #+end_src
 
 Debug the design with a lovely vcd file
 
 #+begin_src async-shell :name gen-vcd :results none
-fud e src/main.futil \
-    -s verilog.data data/simple.json \
-    --to vcd --through icarus-verilog \
-    -s calyx.flags " -p no-opt" \
-    -s verilog.cycle_limit 1000 \
+fud2 src/main.futil \
+    --set sim.data=data/simple.json \
+    --to vcd --through icarus --through trace \
+    --set calyx.flags " -p no-opt" \
+    --set verilog.cycle_limit=1000 \
     -o dbg.vcd
 #+end_src
+
+What I want this fud2 invocation to be:
+
+#+begin_src async-shell :name calyx-riscv :results none
+# fud2 list
+# fud2 riscv-to-calyx/data/simple.s \
+#      -s sim.cycle_limit=10000 \
+#      --to riscv-decode
+     # -m emit \
+
+fud2 src/main.futil \
+     -s riscv.asm=riscv-to-calyx/data/simple.s \
+     -s sim.cycle_limit=10000 \
+     --from riscv-asm2 \
+     --to riscv-decode -v -m emit
+#+end_src
+
+Ok, got that to work. However, I think it was much more complicated than necessary.
+I had to manually call a bunch of rules, basically reimplementing several stages by hand.
