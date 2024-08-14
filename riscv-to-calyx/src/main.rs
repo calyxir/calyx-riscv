@@ -34,16 +34,16 @@ fn read_other_memories(data: &str) -> Result<(String, usize, usize, Option<u32>)
     if parts.len() == 3 {
         Ok((
             parts[0].to_string(),
-            usize::from_str_radix(parts[1], 10).map_err(|err| format!("{err}"))?,
-            usize::from_str_radix(parts[2], 10).map_err(|err| format!("{err}"))?,
+            parts[1].parse::<usize>().map_err(|err| format!("{err}"))?,
+            parts[2].parse::<usize>().map_err(|err| format!("{err}"))?,
             None,
         ))
     } else if parts.len() == 4 {
         Ok((
             parts[0].to_string(),
-            usize::from_str_radix(parts[1], 10).map_err(|err| format!("{err}"))?,
-            usize::from_str_radix(parts[2], 10).map_err(|err| format!("{err}"))?,
-            Some(u32::from_str_radix(parts[3], 10).map_err(|err| format!("{err}"))?),
+            parts[1].parse::<usize>().map_err(|err| format!("{err}"))?,
+            parts[2].parse::<usize>().map_err(|err| format!("{err}"))?,
+            Some(parts[3].parse::<u32>().map_err(|err| format!("{err}"))?),
         ))
     } else {
         Err(String::from("Wrong number of arguments "))

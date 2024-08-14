@@ -9,69 +9,97 @@ This is a bad implementation of a subset of the RISCV32-I instruction set.
 - I haven't made any particular effort to simplify decoding logic
 - probably more things
 
-* Some useful commands
+* Simulating a RISC-V assembly file
 
-Encode =simple.s= into Calyx data format.
+I have provided a =fud2= stage to make this process simpler. Start by installing the plugin. Add the following line to your =fud2.toml= config file.
 
-#+begin_src async-shell :name encode :results none :dir ~/Research/calyx-processor/riscv-to-calyx
-cargo run -- encode data/simple.s \
-      --data ram:16:32:1 \
-      --data reg_file:32:32 \
-      --data dbg:1:32 \
-      -o ../data/simple.json
+#+begin_example
+plugins = [
+  "<calyx-riscv root>/fud2/riscv.rhai"
+]
+#+end_example
+
+You should be able to see =riscv-simulate= and =riscv-decode= operations in the output of =fud2 list=.
+
+To simulate the =riscv-to-calyx/data/simple.s= file, you can run
+
+#+begin_src shell
+fud2 riscv-to-calyx/data/simple.s --to riscv-decode
 #+end_src
 
-Decode a calyx data file and read assembly instructions.
+This should have the following output:
 
-#+begin_src async-shell :name decode :results none :dir ~/Research/calyx-processor/riscv-to-calyx
-cargo run -- decode ../data/simple.json
+#+begin_example
+Took 1227 cycles
+
+== instructions ==
+  0: addi x10, x0, 0
+  1: addi x11, x0, 10
+  2: addi x5, x0, 0
+  3: addi x6, x0, 0
+  4: bge x6, x11, 1c
+  5: slli x7, x6, 2
+  6: add x7, x10, x7
+  7: lw xxx
+  8: add x5, x5, x7
+  9: addi x6, x6, 1
+ 10: J { opcode: 111, rd: 0, imm: 1042943 }
+ 11: addi x10, x5, 0
+ 12: I { opcode: 103, rd: 0, funct3: 0, rs1: 1, imm: 0 }
+
+== registers ==
+x0  zero: 0
+x1    ra: xxxxxxxx
+x2    sp: xxxxxxxx
+x3    gp: xxxxxxxx
+x4    tp: xxxxxxxx
+x5    t0: 10
+x6    t1: 10
+x7    t2: 1
+x8    fp: xxxxxxxx
+x9    s1: xxxxxxxx
+x10    a0: 10
+x11    a1: 10
+x12    a2: xxxxxxxx
+x13    a3: xxxxxxxx
+x14    a4: xxxxxxxx
+x15    a5: xxxxxxxx
+x16    a6: 0
+x17    a7: 0
+x18    s2: 0
+x19    s3: 0
+x20    s4: 0
+x21    s5: 0
+x22    s6: 0
+x23    s7: 0
+x24    s8: 0
+x25    s9: 0
+x26   s10: 0
+x27   s11: 0
+x28    t3: 0
+x29    t4: 0
+x30    t5: 0
+x31    t6: 0
+#+end_example
+
+** Note:
+
+This command assumes that both the =fud= and =calyx-py= python packages are installed in the environment that you are running this in. With the annoying new =pip= restrictions, this is more annoying than ever.
+
+To do this the "proper" way, you can run the following commands:
+
+#+begin_src shell
+# create a new venv inside the root of this repo
+cd calyx-riscv
+python3 -m venv .
+
+# acitvate the venv
+source bin/activate
+
+# install dependencies through flit
+pip3 install flit
+cd ../calyx/fud
+python3 -m flit install # make sure to use the flit inside of the venv
+cd ../calyx-py
+python3 -m flit install
 #+end_src
-
-Simulate the design with icarus verilog (was having some issues with Verilator)
-
-#+begin_src async-shell :name calyx-processor :results none
-cargo run --manifest-path=riscv-to-calyx/Cargo.toml -- \
-      encode riscv-to-calyx/data/simple.s \
-      --data ram:16:32:1 \
-      --data reg_file:32:32 \
-      --data dbg:1:32 \
-      -o data/simple.json
-
-rm -rf .fud2
-fud2 src/main.futil \
-    --set sim.data=data/simple.json \
-    --to dat --through icarus \
-    --set sim.cycle_limit=100000 --keep
-
-# | cargo run --manifest-path=riscv-to-calyx/Cargo.toml -- decode
-#+end_src
-
-Debug the design with a lovely vcd file
-
-#+begin_src async-shell :name gen-vcd :results none
-fud2 src/main.futil \
-    --set sim.data=data/simple.json \
-    --to vcd --through icarus --through trace \
-    --set calyx.flags " -p no-opt" \
-    --set verilog.cycle_limit=1000 \
-    -o dbg.vcd
-#+end_src
-
-What I want this fud2 invocation to be:
-
-#+begin_src async-shell :name calyx-riscv :results none
-# fud2 list
-# fud2 riscv-to-calyx/data/simple.s \
-#      -s sim.cycle_limit=10000 \
-#      --to riscv-decode
-     # -m emit \
-
-fud2 src/main.futil \
-     -s riscv.asm=riscv-to-calyx/data/simple.s \
-     -s sim.cycle_limit=10000 \
-     --from riscv-asm2 \
-     --to riscv-decode -v -m emit
-#+end_src
-
-Ok, got that to work. However, I think it was much more complicated than necessary.
-I had to manually call a bunch of rules, basically reimplementing several stages by hand.
