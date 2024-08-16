@@ -19,6 +19,17 @@ plugins = [
 ]
 #+end_example
 
+You will also want to set the =riscv.exe= variable either in your config or on the command line. Here's what the config looks like.
+
+#+begin_example
+[riscv]
+exe = "<path to riscv-to-calyx binary>"
+# for development on riscv-to-calyx
+# exe = "cargo run --manifest-path=<path to riscv-to-calyx Cargo.toml>"
+#+end_example
+
+You will need =riscv64-unknown-elf-as= installed. If the binary isn't located on the path, you can specify it's location in =fud2.toml= under the variable =riscv.assembler=.
+
 You should be able to see =riscv-simulate= and =riscv-decode= operations in the output of =fud2 list=.
 
 To simulate the =riscv-to-calyx/data/simple.s= file, you can run

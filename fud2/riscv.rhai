@@ -26,10 +26,13 @@ fn riscv_sim_setup(e) {
 }
 
 fn riscv_setup(e) {
-   e.var_("riscv-cmd", "cargo run --manifest-path=../riscv-to-calyx/Cargo.toml");
+   e.config_var_or("riscv-cmd", "riscv.exe", "riscv-to-calyx");
+   // e.var_("riscv-cmd", "cargo run --manifest-path=../riscv-to-calyx/Cargo.toml");
+   e.config_var_or("riscv-as", "riscv.assembler", "riscv64-unknown-elf-as");
+
    e.rule(
       "riscv-encode",
-      "$riscv-cmd encode $in --data ram:16:32:1 --data reg_file:32:32 --data dbg:1:32 > $out"
+      "$riscv-cmd encode $in -a $riscv-as --data ram:16:32:1 --data reg_file:32:32 --data dbg:1:32 > $out"
    );
    e.rule("riscv-decode", "$riscv-cmd decode $in > $out");
 }
