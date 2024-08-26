@@ -84,13 +84,13 @@ comb component alu(left: 32, right: 32, funct3: 3, funct7: 7) -> (out: 32) {
 }
 
 comb component comp_alu(left: 32, right: 32, funct3: 3) -> (out: 1) {
-  cells {    
+  cells {
     beq = std_eq(32);
     blt = std_lt(32);
     neg = std_not(1);
 
     // the bottom wire of funct3 tells us if we should negate the output
-    op = std_bit_slice(3, 1, 3, 2);
+    op = std_bit_slice(3, 1, 2, 2);
     should_negate = std_bit_slice(3, 0, 1, 1);
     tmp_out = std_wire(1);
   }
@@ -110,7 +110,7 @@ comb component comp_alu(left: 32, right: 32, funct3: 3) -> (out: 1) {
     // choose which function to run
     tmp_out.in = op.out == 2'b00 ? beq.out;
     tmp_out.in = op.out == 2'b10 ? blt.out;
-    tmp_out.in = op.out != 2'b00 | op.out != 2'b10 ? 1'b0;
+    tmp_out.in = op.out != 2'b00 & op.out != 2'b10 ? 1'b0;
 
     // hook up negation
     neg.in = tmp_out.out;
@@ -128,10 +128,10 @@ comb component comp_alu(left: 32, right: 32, funct3: 3) -> (out: 1) {
 comb component btype_immediate(imm0: 5, imm1: 7) -> (out: 32) {
   cells {
     // grab different parts of imm0 and imm1
-    imm0_1_5 = std_bit_slice(5, 1, 5, 4);
-    imm1_0_7 = std_bit_slice(7, 0, 7, 6);
+    imm0_1_5 = std_bit_slice(5, 1, 4, 4);
+    imm1_0_7 = std_bit_slice(7, 0, 6, 6);
     imm0_0 = std_bit_slice(5, 0, 1, 1);
-    imm1_7 = std_bit_slice(7, 6, 7, 1);
+    imm1_7 = std_bit_slice(7, 6, 6, 1);
 
     // imm0[1..5] | 0
     cat0 = std_cat(4, 1, 5);
@@ -166,7 +166,7 @@ comb component btype_immediate(imm0: 5, imm1: 7) -> (out: 32) {
 
     cat2.left = imm0_0.out;
     cat2.right = cat1.out;
-    
+
     cat3.right = cat2.out;
     cat3.left = imm1_7.out;
 
@@ -194,7 +194,7 @@ comb component jtype_immediate(imm: 20) -> (out: 32) {
     // bits 1-10 in result
     s9_18 = std_bit_slice(20, 9, 19, 10);
     // bit 20 in result
-    s19 = std_bit_slice(20, 19, 20, 1);
+    s19 = std_bit_slice(20, 19, 19, 1);
 
     // s9_18 | 0
     cat0 = std_cat(10, 1, 11);
@@ -241,13 +241,13 @@ comb component jtype_immediate(imm: 20) -> (out: 32) {
 
 comb component decode(inst: 32) -> (opcode: 7, rd: 5, funct3: 3, rs1: 5, rs2: 5, funct7: 7, imm: 20) {
   cells {
-    opcode_slice = std_bit_slice(32, 0, 7, 7);
+    opcode_slice = std_bit_slice(32, 0, 6, 7);
     rd_slice = std_bit_slice(32, 7, 12, 5);
     funct3_slice = std_bit_slice(32, 12, 15, 3);
-    rs1_slice = std_bit_slice(32, 15, 20, 5);
-    rs2_slice = std_bit_slice(32, 20, 25, 5);
-    funct7_slice = std_bit_slice(32, 25, 32, 7);
-    imm_slice = std_bit_slice(32, 12, 32, 20);
+    rs1_slice = std_bit_slice(32, 15, 19, 5);
+    rs2_slice = std_bit_slice(32, 20, 24, 5);
+    funct7_slice = std_bit_slice(32, 25, 31, 7);
+    imm_slice = std_bit_slice(32, 12, 31, 20);
 
   }
 
@@ -296,8 +296,8 @@ component main(@go go: 1) -> (@done done: 1) {
     curr_inst = std_reg(32);
     curr_rs1 = std_reg(32);
     curr_rs2 = std_reg(32);
-    curr_imm_cat = std_cat(7, 5, 13);
-    curr_imm = std_signext(13, 32);
+    curr_imm_cat = std_cat(7, 5, 12);
+    curr_imm = std_signext(12, 32);
     btype_immediate = btype_immediate();
     jtype_immediate = jtype_immediate();
     j_retval_incr = std_add(32);
@@ -383,8 +383,9 @@ component main(@go go: 1) -> (@done done: 1) {
 
     comb group is_r_type {
       // arith instructions
-      r_type.in = decoder.opcode == 7'b0110011 ? 1'b1;
-      r_type.in = decoder.opcode != 7'b0110011 ? 1'b0;
+      r_type.in = 1'b1;
+      // r_type.in = decoder.opcode == 7'b0110011 ? 1'b1;
+      // r_type.in = decoder.opcode != 7'b0110011 ? 1'b0;
     }
 
     // TODO: rename this (I really only want it to do arithmetic immediate instructions)
@@ -519,10 +520,10 @@ component main(@go go: 1) -> (@done done: 1) {
       rf.reg_idx = decoder.rd;
       rf.write_val = j_retval_incr.out;
       rf.write_en = 1'b1;
-      
+
       compute_jump[done] = pc_jump.done & rf.done ? 1'b1;
     }
-    
+
     // increment the pc
     group incr_pc {
       pc_incr.left = pc.out;
