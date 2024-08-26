@@ -110,7 +110,7 @@ comb component comp_alu(left: 32, right: 32, funct3: 3) -> (out: 1) {
     // choose which function to run
     tmp_out.in = op.out == 2'b00 ? beq.out;
     tmp_out.in = op.out == 2'b10 ? blt.out;
-    tmp_out.in = op.out != 2'b00 | op.out != 2'b10 ? 1'b0;
+    tmp_out.in = op.out != 2'b00 & op.out != 2'b10 ? 1'b0;
 
     // hook up negation
     neg.in = tmp_out.out;
@@ -383,8 +383,9 @@ component main(@go go: 1) -> (@done done: 1) {
 
     comb group is_r_type {
       // arith instructions
-      r_type.in = decoder.opcode == 7'b0110011 ? 1'b1;
-      r_type.in = decoder.opcode != 7'b0110011 ? 1'b0;
+      r_type.in = 1'b1;
+      // r_type.in = decoder.opcode == 7'b0110011 ? 1'b1;
+      // r_type.in = decoder.opcode != 7'b0110011 ? 1'b0;
     }
 
     // TODO: rename this (I really only want it to do arithmetic immediate instructions)
