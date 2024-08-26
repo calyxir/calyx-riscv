@@ -84,7 +84,7 @@ comb component alu(left: 32, right: 32, funct3: 3, funct7: 7) -> (out: 32) {
 }
 
 comb component comp_alu(left: 32, right: 32, funct3: 3) -> (out: 1) {
-  cells {    
+  cells {
     beq = std_eq(32);
     blt = std_lt(32);
     neg = std_not(1);
@@ -166,7 +166,7 @@ comb component btype_immediate(imm0: 5, imm1: 7) -> (out: 32) {
 
     cat2.left = imm0_0.out;
     cat2.right = cat1.out;
-    
+
     cat3.right = cat2.out;
     cat3.left = imm1_7.out;
 
@@ -519,10 +519,10 @@ component main(@go go: 1) -> (@done done: 1) {
       rf.reg_idx = decoder.rd;
       rf.write_val = j_retval_incr.out;
       rf.write_en = 1'b1;
-      
+
       compute_jump[done] = pc_jump.done & rf.done ? 1'b1;
     }
-    
+
     // increment the pc
     group incr_pc {
       pc_incr.left = pc.out;
